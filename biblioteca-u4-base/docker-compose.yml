@@ -13,7 +13,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - datos_postgres:/var/lib/postgresql/data
+      - datos_postgres:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-biblioteca} -d ${DB_NAME:-biblioteca}"]
       interval: 5s
@@ -48,7 +48,7 @@ services:
       DB_PASSWORD: ${DB_PASSWORD:-biblioteca}
       REDIS_HOST: redis
       REDIS_PORT: 6379
-      JWT_SECRETO: ${JWT_SECRETO:?Defina JWT_SECRETO en el archivo .env}
+      JWT_SECRETO: ${JWT_SECRETO:-AedHoLHflUKCcJXzZ/K+5+lM9tH6T2pAtRzltjmNhFI=}
       JWT_EXPIRACION_MINUTOS: ${JWT_EXPIRACION_MINUTOS:-60}
     ports:
       - "8080:8080"

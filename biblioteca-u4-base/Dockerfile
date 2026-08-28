@@ -9,17 +9,17 @@
 # =====================================================================
 
 # ---------- etapa 1: compilacion ----------
-FROM maven:3.9.16-eclipse-temurin-25-alpine AS constructor
+FROM maven:3.9.16-eclipse-temurin-21-alpine AS constructor
 WORKDIR /build
 # Primero solo el pom: asi la capa de dependencias se cachea y no se
 # vuelve a descargar cuando cambia unicamente el codigo fuente.
 COPY pom.xml ./
 RUN mvn -B -q dependency:go-offline
 COPY src/ src/
-RUN mvn -B clean package -DskipTests
+RUN mvn -B clean package -Dmaven.test.skip=true
 
 # ---------- etapa 2: ejecucion ----------
-FROM eclipse-temurin:25-jre-alpine
+FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 RUN addgroup -S app && adduser -S app -G app
 COPY --from=constructor /build/target/*.jar app.jar

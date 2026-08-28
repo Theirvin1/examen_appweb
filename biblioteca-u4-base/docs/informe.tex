@@ -1,0 +1,180 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{float}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{booktabs}
+\usepackage{cite}
+
+\definecolor{codebg}{RGB}{245,247,250}
+\definecolor{codeframe}{RGB}{180,190,205}
+\definecolor{keywordcolor}{RGB}{0,90,180}
+\definecolor{stringcolor}{RGB}{160,40,40}
+\definecolor{commentcolor}{RGB}{100,110,120}
+\definecolor{azuluteq}{RGB}{0,70,160}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=azuluteq,
+    urlcolor=azuluteq,
+    citecolor=azuluteq
+}
+
+\lstdefinestyle{java}{
+    backgroundcolor=\color{codebg},
+    basicstyle=\ttfamily\footnotesize,
+    keywordstyle=\color{keywordcolor}\bfseries,
+    stringstyle=\color{stringcolor},
+    commentstyle=\color{commentcolor}\itshape,
+    frame=single,
+    rulecolor=\color{codeframe},
+    breaklines=true,
+    breakatwhitespace=false,
+    showstringspaces=false,
+    tabsize=4,
+    columns=fullflexible,
+    morekeywords={public,class,private,protected,final,void,return,if,else,new,var,
+                  @RestController,@RequestMapping,@GetMapping,@PostMapping,@Valid,
+                  @PathVariable,@RequestParam,@PreAuthorize,@Service,@Repository}
+}
+\lstset{style=java}
+
+\lstdefinestyle{bash}{
+    backgroundcolor=\color{codebg},
+    basicstyle=\ttfamily\footnotesize,
+    frame=single,
+    rulecolor=\color{codeframe},
+    breaklines=true,
+    showstringspaces=false,
+    columns=fullflexible
+}
+
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\small Aplicaciones Web --- 5to Nivel --- Paralelo A}
+\rhead{\small Examen Unidad IV --- Spring Boot 4.1.1}
+\cfoot{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\titleformat{\section}{\large\bfseries}{\thesection}{1em}{}
+\titleformat{\subsection}{\normalsize\bfseries}{\thesubsection}{1em}{}
+
+\begin{document}
+
+% ============================================================
+%  CARÁTULA
+% ============================================================
+\begin{titlepage}
+  \centering
+  \vspace*{0.5cm}
+  {\Large \textbf{UNIVERSIDAD TÉCNICA ESTATAL DE QUEVEDO}}\\[0.3cm]
+  {\large \textbf{FACULTAD DE CIENCIAS DE LA COMPUTACIÓN Y DISEÑO DIGITAL}}\\[0.2cm]
+  {\large \textbf{CARRERA DE INGENIERÍA DE SOFTWARE}}
+
+  \vspace{1.0cm}
+
+  {\small \textbf{APLICACIONES WEB  -- 5TO NIVEL -- PARALELO A}}\\[0.3cm]
+
+  {\small \textbf{TEMA:}}\\[0.3cm]
+  {\LARGE \textbf{Informe Técnico del Examen Unidad IV}}\\[0.2cm]
+  {\large \textbf{Modelo Vista Controlador y Servicios Web: API REST, Autenticación JWT y Consumo de APIs Externas}}
+
+  \vspace{1.2cm}
+
+  \begin{tabular}{ll}
+    \textbf{ESTUDIANTE:} & IRVIN MARCELO CAJAS IBARRA \\
+    \textbf{DOCENTE:}    & Dr. Gleiston Cicerón Guerrero Ulloa, Ph.D. \\
+    \textbf{REPOSICION:} & \url{https://github.com/Theirvin1/examen_appweb} \\
+    \textbf{PERIODO:}    & 2026--2027 PPA
+  \end{tabular}
+
+  \vfill
+  {\normalsize Quevedo -- Ecuador \quad 2026}
+\end{titlepage}
+
+
+\newpage
+
+\section{Introducción y Objetivos}
+
+Este informe describe la solución técnica desarrollada para la evaluación práctica de la \textbf{Unidad IV} en la asignatura Aplicaciones Web. Partiendo del proyecto base \texttt{biblioteca-u4-base}, se extendió la aplicación para exponer una API REST completa, construida sobre \textbf{Java 25} y \textbf{Spring Boot 4.1.1}, siguiendo los principios del estilo arquitectónico REST propuestos originalmente por Fielding \cite{fielding2002principled}.
+
+El trabajo realizado cubrió los siguientes puntos:
+\begin{itemize}[noitemsep]
+    \item Diseño de controladores REST con filtros dinámicos, paginación y una estructura de respuesta uniforme mediante el envoltorio \texttt{ApiResponse}, en línea con las prácticas de diseño analizadas por Neumann et al. sobre APIs REST públicas \cite{neumann2021analysis}.
+    \item Mecanismo de autenticación sin estado basado en JWT (\textit{JSON Web Token}), con autorización por roles para proteger los endpoints sensibles, siguiendo el esquema de sesión con HMAC-SHA512 descrito por Dalimunthe et al. \cite{dalimunthe2023jwt}.
+    \item Consumo de la API externa OpenLibrary aplicando el patrón \textit{Cache-Aside} sobre Redis 8, con una estrategia de invalidación acorde a lo propuesto por Falkevych y Lisniak para arquitecturas de microservicios \cite{falkevych2023invalidation}.
+    \item Suite de pruebas de integración automatizadas con Testcontainers 2.x y PostgreSQL 18.
+\end{itemize}
+
+\section{Matriz Tecnológica y Entorno}
+
+\begin{table}[H]
+\centering
+\caption{Componentes de software y versiones utilizadas.}
+\begin{tabular}{lll}
+\toprule
+\textbf{Componente} & \textbf{Versión} & \textbf{Función / Observación} \\
+\midrule
+Java & 25 (LTS) & Lenguaje base (SDK 25) \\
+Spring Boot & 4.1.1 & Framework principal (\texttt{spring-boot-starter-webmvc}) \\
+Spring Data JPA & 4.1.x & Persistencia y consultas dinámicas mediante Specifications \\
+Flyway & 12.4.0 & Migración de esquemas SQL (\texttt{V1}, \texttt{V2}, \texttt{V3}) \\
+PostgreSQL & 18 & Base de datos relacional en Docker \\
+Redis & 8 & Memoria caché (\textit{Cache-Aside}) \\
+Testcontainers & 2.0.5 & Entorno aislado para pruebas de integración \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Desarrollo Técnico}
+
+\subsection{B1. Endpoints REST y Envoltorio Estándar}
+Se creó el controlador \texttt{LibroController} para administrar las operaciones sobre los libros del sistema. El endpoint \texttt{GET /api/v1/libros} admite parámetros opcionales de búsqueda (\texttt{titulo}, \texttt{categoriaId}, \texttt{anioDesde}), los cuales son procesados por \texttt{LibroService.buscar(...)}. Los resultados se entregan envueltos en el objeto \texttt{ApiResponse}, junto con la información de paginación contenida en \texttt{PageMeta}. Este diseño responde a las observaciones de Neumann, Laranjeiro y Bernardino sobre la heterogeneidad de adherencia a los principios REST en APIs públicas reales \cite{neumann2021analysis}, buscando así una interfaz consistente y predecible para los consumidores del servicio.
+
+\subsection{B2. Autenticación JWT y Seguridad por Roles}
+El esquema de autenticación no mantiene estado en el servidor. El controlador \texttt{AuthController} valida las credenciales del usuario y devuelve un token JWT firmado con el algoritmo HMAC-SHA. Cada petición entrante pasa por el filtro \texttt{JwtAuthenticationFilter}, encargado de reconstruir el contexto de seguridad a partir del token recibido. Las rutas de escritura, como \texttt{POST /api/v1/libros}, quedan restringidas mediante la anotación \texttt{@PreAuthorize("hasRole('ADMIN')")}. Este enfoque de gestión de sesión sin estado, firmado con HMAC-SHA512, sigue el modelo evaluado por Dalimunthe, Putra y Ridha para servicios RESTful \cite{dalimunthe2023jwt}.
+
+\subsection{B3. API Externa con Cache-Aside y Manejo de Fallos}
+Se implementó el cliente HTTP \texttt{OpenLibraryClient} para enriquecer los registros de libros con metadatos adicionales obtenidos por ISBN.
+\begin{itemize}
+    \item \textbf{Caché:} los resultados se almacenan en el espacio de caché \texttt{openlibrary}, con una expiración (TTL) de 24 horas en Redis.
+    \item \textbf{Resiliencia:} si el proveedor externo responde con un código \texttt{404}, los campos externos se devuelven como \texttt{null} sin afectar el código \texttt{200 OK} de la respuesta local del libro. Ante fallos de red o errores \texttt{5xx}, se lanza una \texttt{ServicioExternoException}, que el manejador global traduce automáticamente a un estado \texttt{502 Bad Gateway}.
+\end{itemize}
+La estrategia de invalidación y separación de responsabilidades entre la lógica de negocio y las reglas de actualización de caché sigue el enfoque declarativo propuesto por Falkevych y Lisniak para arquitecturas de microservicios \cite{falkevych2023invalidation}.
+
+\subsection{B4. Pruebas de Integración}
+En la clase \texttt{LibroControllerIT} se implementaron pruebas automatizadas ejecutadas contra una instancia real de PostgreSQL en contenedor:
+\begin{enumerate}
+    \item Verificación de que el listado responde con estado \texttt{200 OK} y la estructura esperada del envoltorio \texttt{ApiResponse}.
+    \item Comprobación de que una solicitud a un recurso inexistente devuelve un error \texttt{404 Not Found} con formato \texttt{ProblemDetails}.
+    \item Validación de que un cuerpo de solicitud inválido produce una respuesta \texttt{400 Bad Request}.
+\end{enumerate}
+
+\section{Comandos de Compilación del Informe}
+
+Para dar cumplimiento al criterio de evaluación obligatorio, la cadena de compilación de este documento desde la terminal en el directorio \texttt{docs/} es la siguiente:
+
+\begin{lstlisting}[style=bash]
+cd docs
+pdflatex informe.tex
+bibtex informe
+pdflatex informe.tex
+pdflatex informe.tex
+\end{lstlisting}
+
+\section{Conclusiones}
+
+Este ejercicio permitió consolidar el uso de una arquitectura en capas con Spring Boot 4.1.1 sobre Java 25. Se comprobó el valor de aplicar convenciones REST rigurosas de mantener la autenticación JWT desacoplada de la lógica de negocio mediante un esquema de firma robusto , y de aislar los servicios externos a través de una estrategia de caché bien definida, lo cual mejora la resiliencia general del sistema.
+
+\bibliographystyle{ieeetr}
+\bibliography{referencias}
+
+\end{document}
